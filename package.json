@@ -1,0 +1,28 @@
+{
+  "name": "fetchback",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:backend": "convex dev",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc --noEmit -p convex && tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@agentmail/convex": "^0.1.0",
+    "@firecrawl/firecrawl-convex": "^0.1.1",
+    "convex": "^1.45.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.3.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0"
+  }
+}
