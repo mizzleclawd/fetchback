@@ -16,7 +16,7 @@
 
 ## Log
 
-### 2026-08-26 - working tree
+### 2026-08-26 - 6d62a07
 Scaffolded the full FetchBack backend and a minimal live board. Schema covers
 pets, search cases (drill/active), volunteer territories, sightings, shelters,
 approval-gated outreach drafts, vision-scored matches, watched pages, and an
