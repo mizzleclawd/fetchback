@@ -21,6 +21,9 @@
       },
     },
   },
+  "patchedDependencies": {
+    "@agentmail/convex@0.1.0": "patches/@agentmail%2Fconvex@0.1.0.patch",
+  },
   "packages": {
     "@agentmail/convex": ["@agentmail/convex@0.1.0", "", { "dependencies": { "@convex-dev/workpool": "^0.3.0", "svix": "^1.70.0" }, "peerDependencies": { "convex": "^1.24.8", "convex-helpers": "^0.1.106" } }, "sha512-pqfIBX/XObWqC9M3sqh0Jy8KGOtQzpC0plZok3mJye0ZmEOuo5BZbG6diihjeIzBOEQblnagO9C+IX6+uQNfvg=="],
 

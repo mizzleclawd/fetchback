@@ -13,7 +13,7 @@ import {
 import { components, internal } from "./_generated/api";
 import { AgentMail } from "@agentmail/convex";
 import { logEvent } from "./cases";
-import { draftShelterEmail } from "./lib/openai";
+import { draftShelterEmail } from "./lib/vision";
 
 export const agentmail: AgentMail = new AgentMail(components.agentmail, {
   onMessageReceived: internal.mail.onMessageReceived,

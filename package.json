@@ -24,5 +24,8 @@
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.7.2",
     "vite": "^6.0.0"
+  },
+  "patchedDependencies": {
+    "@agentmail/convex@0.1.0": "patches/@agentmail%2Fconvex@0.1.0.patch"
   }
 }

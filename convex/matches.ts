@@ -10,7 +10,8 @@ import {
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { logEvent } from "./cases";
-import { scoreMatch } from "./lib/openai";
+import { scoreMatch, visionMode } from "./lib/vision";
+import { storePhotoAttachments } from "./lib/attachments";
 
 /** Entry point scheduled by mail.onMessageReceived for each shelter reply. */
 export const scoreInboundReply = internalAction({
@@ -27,20 +28,34 @@ export const scoreInboundReply = internalAction({
     });
     if (!petCtx) return;
 
-    // Attachment → storage → URL pipeline is kill-gate work; when a photo is
-    // present its URL is passed as candidatePhotoUrl. Text-only replies still
-    // get scored on description alone.
+    // Kill-gate #2: inbound photo attachment → Convex file storage.
+    // The first stored photo becomes the vision candidate.
+    const { photos, error: attachError } = await storePhotoAttachments(
+      ctx,
+      args.attachments,
+    );
+    const candidate = photos[0] ?? null;
+    if (candidate) {
+      await ctx.runMutation(internal.matches.setSightingPhoto, {
+        sightingId: args.sightingId,
+        photoId: candidate.storageId,
+      });
+    }
+
     const { score, reasons } = await scoreMatch({
       petDescription: petCtx.description,
       petPhotoUrls: petCtx.photoUrls,
       candidateDescription: args.messageText.slice(0, 1000),
+      candidatePhotoUrl: candidate?.url,
     });
+    if (attachError) reasons.push(`Attachment intake: ${attachError}`);
 
     await ctx.runMutation(internal.matches.saveMatch, {
       caseId: args.caseId,
       source: "shelter_email",
       sightingId: args.sightingId,
       shelterId: args.shelterId,
+      candidatePhotoId: candidate?.storageId,
       candidateDescription: args.messageText.slice(0, 500),
       score,
       reasons,
@@ -62,6 +77,17 @@ export const petContext = internalMutation({
       description: pet.description,
       photoUrls: urls.filter((u): u is string => u !== null),
     };
+  },
+});
+
+/** Attach a stored photo to the sighting the reply created. */
+export const setSightingPhoto = internalMutation({
+  args: {
+    sightingId: v.id("sightings"),
+    photoId: v.id("_storage"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.sightingId, { photoId: args.photoId });
   },
 });
 
