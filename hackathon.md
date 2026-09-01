@@ -31,6 +31,18 @@ remains configurable for fallbacks); awaiting a ~$10 API credit purchase.
 The labeled mock adapter keeps the app fully demoable until then. No code
 changed in this entry.
 
+### 2026-08-31 (night) — credit sizing for multi-app submissions (Connie)
+
+Context: multiple apps will be submitted (rules explicitly allow unlimited
+submissions). Budget decision: OpenAI credit purchase sized at $25, not
+$10 — kill-gate/demo/judge traffic across 2-3 apps estimates $10-25, and
+an app rate-limiting during judging would zero the "OpenAI does real
+work" criterion. Plan when OPENAI_API_KEY lands: default the vision
+adapter to a low-cost vision model for public/judge traffic via the
+existing model seam in `convex/lib/vision.ts` (mini-class models are
+10-20x cheaper), reserving the strongest model for the recorded demo.
+Credits do not expire; surplus remains account balance.
+
 ### 2026-08-31 (later) — real webhook + attachment kill-gate (Connie)
 
 **Env changes on dev `valiant-ram-10`:** AGENTMAIL_API_KEY re-set by Darius
