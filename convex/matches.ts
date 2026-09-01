@@ -12,6 +12,7 @@ import { internal } from "./_generated/api";
 import { logEvent } from "./cases";
 import { scoreMatch, visionMode } from "./lib/vision";
 import { storePhotoAttachments } from "./lib/attachments";
+import { requireCaseOwnerOrDemo } from "./lib/guards";
 
 /** Entry point scheduled by mail.onMessageReceived for each shelter reply. */
 export const scoreInboundReply = internalAction({
@@ -135,6 +136,9 @@ export const decideMatch = mutation({
   handler: async (ctx, args) => {
     const m = await ctx.db.get(args.matchId);
     if (!m) throw new Error("Match not found");
+    // Owner-only; the fictional demo case passes through (labeled in UI)
+    // so judges can exercise the decision without an account.
+    await requireCaseOwnerOrDemo(ctx, m.caseId);
     await ctx.db.patch(args.matchId, {
       verdict: args.verdict,
       decidedAt: Date.now(),

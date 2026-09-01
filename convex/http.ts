@@ -1,8 +1,12 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { agentmail } from "./mail";
+import { auth } from "./auth";
 
 const http = httpRouter();
+
+// Convex Auth — sign-in/sign-out/JWKS endpoints for the Anonymous provider.
+auth.addHttpRoutes(http);
 
 // AgentMail inbound webhook. Register in the AgentMail dashboard as:
 //   https://<deployment>.convex.site/agentmail/webhook

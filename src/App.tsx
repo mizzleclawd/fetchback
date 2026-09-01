@@ -1,4 +1,5 @@
 import { useQuery, useMutation } from "convex/react";
+import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../convex/_generated/api";
 import { useState } from "react";
 
@@ -6,6 +7,31 @@ import { useState } from "react";
 // The real map UI replaces this during feature build (post-gate).
 
 const DEMO_SLUG = "demo-biscuit";
+
+function AuthWidget() {
+  const viewer = useQuery(api.users.viewer);
+  const { signIn, signOut } = useAuthActions();
+  const [name, setName] = useState("");
+  if (viewer === undefined) return null;
+  if (viewer)
+    return (
+      <button className="auth" onClick={() => void signOut()}>
+        Sign out{viewer.name ? ` (${viewer.name})` : ""}
+      </button>
+    );
+  return (
+    <span className="auth">
+      <input
+        placeholder="Your name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <button onClick={() => void signIn("anonymous", { name })}>
+        Sign in
+      </button>
+    </span>
+  );
+}
 
 export default function App() {
   const data = useQuery(api.cases.caseBySlug, { slug: DEMO_SLUG });
@@ -17,6 +43,7 @@ export default function App() {
           Multiplayer missing-pet search party — Convex runs it, Firecrawl feeds
           it, AgentMail gives it an inbox.
         </p>
+        <AuthWidget />
       </header>
       {data === undefined && <p>Connecting to Convex…</p>}
       {data === null && (

@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
 // Shared enums
 export const caseStatus = v.union(
@@ -16,6 +17,7 @@ export const matchVerdict = v.union(
 );
 
 export default defineSchema({
+  ...authTables,
   // A registered pet. Registration happens BEFORE loss (Drill Mode onboarding).
   pets: defineTable({
     ownerId: v.string(), // auth subject; "demo" for seeded judge workspace

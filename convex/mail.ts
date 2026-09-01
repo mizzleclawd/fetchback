@@ -14,6 +14,7 @@ import { components, internal } from "./_generated/api";
 import { AgentMail } from "@agentmail/convex";
 import { logEvent } from "./cases";
 import { draftShelterEmail } from "./lib/vision";
+import { requireCaseOwnerOrDemo } from "./lib/guards";
 
 export const agentmail: AgentMail = new AgentMail(components.agentmail, {
   onMessageReceived: internal.mail.onMessageReceived,
@@ -93,6 +94,9 @@ export const approveAndSend = mutation({
     if (draft.status !== "draft") throw new Error("Draft already processed");
     const shelter = await ctx.db.get(draft.shelterId);
     if (!shelter?.email) throw new Error("Shelter has no email address");
+    // Owner-only approval; the fictional demo case passes through (labeled
+    // in UI) so judges can exercise the approve→send flow without an account.
+    await requireCaseOwnerOrDemo(ctx, draft.caseId);
 
     const outboundId = await agentmail.sendMessage(ctx, inboxId(), {
       to: shelter.email,

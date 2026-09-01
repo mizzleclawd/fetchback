@@ -9,10 +9,10 @@
 - **Convex deployment:** dev `valiant-ram-10` (team dmd-tech, project fetchback); prod provisioned (`beloved-dog-203`), not yet used
 - **Components:** @agentmail/convex, @firecrawl/firecrawl-convex
 - **Convex features:** schema, tables, indexes, queries, mutations, actions, internal functions, HTTP actions, scheduled functions, file storage, realtime queries
-- **Auth:** none
+- **Auth:** @convex-dev/auth — one-tap Anonymous owner identity; owner-only guards with labeled demo passthrough
 - **AI models:** OpenAI (vision match scoring + outreach drafting; model configurable, default gpt-5.2) — **currently behind the mock adapter** (see log)
 - **Started:** 2026-08-26T02:47:00Z
-- **Last updated:** 2026-08-31T19:15:00Z
+- **Last updated:** 2026-09-01T04:50:00Z
 
 ## Log
 
@@ -63,6 +63,34 @@ Work plan (scored-impact order, all OpenAI-independent):
 4. Convex Auth v2 alpha — owner identity gating match decisions.
 5. Demo video storyboard + social post draft.
 6. On key arrival: low-cost vision model default, real-vision kill-gate.
+
+### 2026-08-31 (night 2) — Convex Auth added: owner identity + guards (Connie)
+
+Installed `@convex-dev/auth@0.0.95` (+ `@auth/core@0.41.1`). Provider:
+**Anonymous (one-tap)** — deliberate: no Passkey provider ships in 0.0.95,
+and a stressed owner (or a judge, live) should never face an email
+round-trip; each sign-in is still a real server-side subject. Wiring:
+`convex/auth.ts` (provider + name param), `convex/auth.config.ts`,
+`auth.addHttpRoutes` in `convex/http.ts`, `authTables` in schema,
+`ConvexAuthProvider` in `src/main.tsx` + `AuthWidget` in the App header.
+
+**Guards (`convex/lib/guards.ts`):** `registerPet` now derives `ownerId`
+from the signed-in identity — closes the client-supplied-ownerId hole;
+`myPets` is identity-scoped; `activateCase` checks pet ownership;
+`decideMatch` + `mail:approveAndSend` are owner-only with a labeled
+passthrough on the fictional `demo-biscuit` drill case so judges can
+exercise the emotional beats without an account.
+
+**Env (dev):** JWT_PRIVATE_KEY + JWKS (RS256, generated headlessly via
+jose), SITE_URL. First key-set attempt leaked the key into a shell error
+path (word-splitting); that key was discarded, regenerated, and set via
+argv-safe `execFileSync` — no value echoed.
+
+**Verified REAL:** `auth:signIn` round-trip returns signed JWTs
+(RS256, iss=valiant-ram-10.convex.site) · `registerPet` without a session
+throws `AuthError: Sign in required` · demo passthrough `decideMatch`
+persists (verdict confirmed + feed event) · typecheck clean, functions
+pushed.
 
 ### 2026-08-31 (later) — real webhook + attachment kill-gate (Connie)
 

@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
+import { requireUserIdentity } from "./lib/guards";
 
 // ---- helpers ----
 
@@ -23,7 +24,6 @@ function makeSlug(petName: string): string {
 
 export const registerPet = mutation({
   args: {
-    ownerId: v.string(),
     name: v.string(),
     species: v.union(v.literal("dog"), v.literal("cat"), v.literal("other")),
     breed: v.optional(v.string()),
@@ -36,16 +36,20 @@ export const registerPet = mutation({
     homeRadiusM: v.number(),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("pets", args);
+    // Owner identity comes from the signed-in user — never from the client.
+    const ownerId = await requireUserIdentity(ctx);
+    return await ctx.db.insert("pets", { ...args, ownerId });
   },
 });
 
 export const myPets = query({
-  args: { ownerId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
     return await ctx.db
       .query("pets")
-      .withIndex("by_owner", (q) => q.eq("ownerId", args.ownerId))
+      .withIndex("by_owner", (q) => q.eq("ownerId", identity.subject))
       .take(50);
   },
 });
@@ -63,6 +67,11 @@ export const activateCase = mutation({
   handler: async (ctx, args) => {
     const pet = await ctx.db.get(args.petId);
     if (!pet) throw new Error("Pet not found");
+    // Only the pet's registered (signed-in) owner may activate a case.
+    const ownerId = await requireUserIdentity(ctx);
+    if (ownerId !== pet.ownerId) {
+      throw new Error("Only the pet's owner can activate a case");
+    }
     const caseId = await ctx.db.insert("searchCases", {
       petId: args.petId,
       ownerId: pet.ownerId,
