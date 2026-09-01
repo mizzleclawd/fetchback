@@ -12,9 +12,24 @@
 - **Auth:** none
 - **AI models:** OpenAI (vision match scoring + outreach drafting; model configurable, default gpt-5.2) — **currently behind the mock adapter** (see log)
 - **Started:** 2026-08-26T02:47:00Z
-- **Last updated:** 2026-08-31T19:05:00Z
+- **Last updated:** 2026-08-31T19:15:00Z
 
 ## Log
+
+### 2026-08-31 (evening) — LLM provider ruling + decision (Connie)
+
+Verified against the official rules (convex.dev/hackathons/all-gas):
+eligibility requires the Convex backend, at least one cohost/partner
+integration (FetchBack has two: Firecrawl + AgentMail), a public repo, and
+a convex.site/chatgpt.site live URL — a specific runtime LLM is NOT an
+eligibility rule ("Anything goes, as long as Convex is the backend"), and
+the build tool may be any agent/IDE with the Convex plugin. However,
+"Sponsor stack — OpenAI, Firecrawl, and AgentMail do real work" is a
+scored criterion and OpenAI fields four of the judges. Decision: OpenAI
+stays the vision/drafting engine (model seam in `convex/lib/vision.ts`
+remains configurable for fallbacks); awaiting a ~$10 API credit purchase.
+The labeled mock adapter keeps the app fully demoable until then. No code
+changed in this entry.
 
 ### 2026-08-31 (later) — real webhook + attachment kill-gate (Connie)
 
