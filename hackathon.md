@@ -43,6 +43,27 @@ existing model seam in `convex/lib/vision.ts` (mini-class models are
 10-20x cheaper), reserving the strongest model for the recorded demo.
 Credits do not expire; surplus remains account balance.
 
+### 2026-08-31 (late) — while-waiting plan + frontend readiness audit (Connie)
+
+Audited frontend state while awaiting OPENAI_API_KEY: `src/App.tsx` is the
+126-line scaffold board (realtime feed + claim/report work) but surfaces
+none of the product — no map, no shelters panel, no match photos, no
+owner confirm/reject UI (`decideMatch` exists, unbound), no draft→approve
+→send UI (`approveAndSend` exists, unbound), no registration/activation
+flow. Static hosting not yet wired (no hosting component in
+`convex/convex.config.ts`); `dist/` stale since Aug 25.
+
+Work plan (scored-impact order, all OpenAI-independent):
+1. Real frontend (map, shelters, match cards w/ photos + owner decision,
+   outreach approve flow, feed, registration/drill) — in progress next.
+2. Prod deploy: hosting component → `beloved-dog-203`, env vars (devloop
+   flag stays OFF prod), prod webhook, clean demo seed.
+3. Firecrawl watched-page cron (unused `watchedPages` table) — rescan
+   shelter pages on active cases, auto-file new-listing sightings.
+4. Convex Auth v2 alpha — owner identity gating match decisions.
+5. Demo video storyboard + social post draft.
+6. On key arrival: low-cost vision model default, real-vision kill-gate.
+
 ### 2026-08-31 (later) — real webhook + attachment kill-gate (Connie)
 
 **Env changes on dev `valiant-ram-10`:** AGENTMAIL_API_KEY re-set by Darius
