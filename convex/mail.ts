@@ -166,9 +166,12 @@ export const onMessageReceived = internalMutation({
       shelterId: shelter._id,
       sightingId,
       messageText: text,
-      // Attachment handling (photo → storage → vision) lands in the kill-gate
-      // build; message payload carries attachment metadata.
+      // Attachment handling (photo → storage → vision): webhook-message
+      // attachments carry only attachment_id — inbox_id/message_id are
+      // needed to resolve download URLs via the Get Attachment endpoint.
       attachments: args.message?.attachments ?? [],
+      inboxId: args.message?.inbox_id ?? undefined,
+      messageId: args.message?.message_id ?? undefined,
     });
   },
 });

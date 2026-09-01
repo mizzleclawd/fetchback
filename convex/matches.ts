@@ -21,6 +21,8 @@ export const scoreInboundReply = internalAction({
     sightingId: v.id("sightings"),
     messageText: v.string(),
     attachments: v.any(),
+    inboxId: v.optional(v.string()),
+    messageId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const petCtx = await ctx.runMutation(internal.matches.petContext, {
@@ -33,6 +35,7 @@ export const scoreInboundReply = internalAction({
     const { photos, error: attachError } = await storePhotoAttachments(
       ctx,
       args.attachments,
+      { inboxId: args.inboxId, messageId: args.messageId },
     );
     const candidate = photos[0] ?? null;
     if (candidate) {

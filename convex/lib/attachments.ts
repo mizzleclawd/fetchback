@@ -21,7 +21,54 @@ type MaybeAttachment = {
   contentType?: string;
   url?: string;
   size?: number;
+  attachment_id?: string;
 };
+
+/** Message context needed to resolve attachment_id → download URL. */
+export type MessageRef = {
+  inboxId?: string;
+  messageId?: string;
+};
+
+function canResolve(a: MaybeAttachment, msg?: MessageRef): boolean {
+  return (
+    !!a.url || (!!a.attachment_id && !!msg?.inboxId && !!msg?.messageId)
+  );
+}
+
+/**
+ * Resolve a fetchable URL for an attachment. Direct `url` (sender-side
+ * thread shape) is used as-is; webhook-message attachments carry only
+ * `attachment_id`, resolved via AgentMail's Get Attachment endpoint
+ * (GET /inboxes/{inbox}/messages/{message}/attachments/{id}) which
+ * returns a short-lived signed download_url.
+ */
+async function resolveAttachmentUrl(
+  a: MaybeAttachment,
+  msg?: MessageRef,
+): Promise<string | null> {
+  if (a.url) return a.url;
+  if (!a.attachment_id || !msg?.inboxId || !msg?.messageId) return null;
+  const apiKey = process.env.AGENTMAIL_API_KEY;
+  if (!apiKey) return null;
+  const base = (
+    process.env.AGENTMAIL_BASE_URL ?? "https://api.agentmail.to/v0"
+  ).replace(/\/$/, "");
+  const path =
+    `/inboxes/${encodeURIComponent(msg.inboxId)}` +
+    `/messages/${encodeURIComponent(msg.messageId)}` +
+    `/attachments/${encodeURIComponent(a.attachment_id)}`;
+  try {
+    const res = await fetch(base + path, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (!res.ok) return null;
+    const j = (await res.json()) as { download_url?: string };
+    return j.download_url ?? null;
+  } catch {
+    return null;
+  }
+}
 
 /** AgentMail inbound payloads carry attachments in several shapes; be liberal. */
 function toAttachmentList(attachments: unknown): MaybeAttachment[] {
@@ -46,9 +93,10 @@ function looksLikeImage(a: MaybeAttachment): boolean {
 export async function storePhotoAttachments(
   ctx: ActionCtx,
   attachments: unknown,
+  msg?: MessageRef,
 ): Promise<{ photos: StoredPhoto[]; error: string | null }> {
   const all = toAttachmentList(attachments);
-  const images = all.filter((a) => looksLikeImage(a) && !!a.url);
+  const images = all.filter((a) => looksLikeImage(a) && canResolve(a, msg));
   const photos: StoredPhoto[] = [];
 
   if (all.length > 0 && images.length === 0) {
@@ -60,7 +108,9 @@ export async function storePhotoAttachments(
 
   for (const a of images.slice(0, MAX_PHOTOS)) {
     try {
-      const res = await fetch(a.url as string, { redirect: "follow" });
+      const fetchUrl = await resolveAttachmentUrl(a, msg);
+      if (!fetchUrl) continue;
+      const res = await fetch(fetchUrl, { redirect: "follow" });
       if (!res.ok) {
         if (photos.length === 0) {
           return { photos, error: `Attachment fetch failed: HTTP ${res.status}` };

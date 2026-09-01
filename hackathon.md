@@ -12,9 +12,48 @@
 - **Auth:** none
 - **AI models:** OpenAI (vision match scoring + outreach drafting; model configurable, default gpt-5.2) — **currently behind the mock adapter** (see log)
 - **Started:** 2026-08-26T02:47:00Z
-- **Last updated:** 2026-08-31T18:48:00Z
+- **Last updated:** 2026-08-31T19:05:00Z
 
 ## Log
+
+### 2026-08-31 (later) — real webhook + attachment kill-gate (Connie)
+
+**Env changes on dev `valiant-ram-10`:** AGENTMAIL_API_KEY re-set by Darius
+(earlier 403s traced to an empty value; verified working — 200 on
+GET /inboxes). AGENTMAIL_WEBHOOK_SECRET set (from webhook registration
+below). AGENTMAIL_INBOX_ID=fetchback-case@agentmail.to. OPENAI_API_KEY
+still ✗ — credits pending; vision remains behind the labeled mock adapter.
+
+**Webhook registered for real (no dashboard needed):** POST /v0/webhooks →
+`ep_3IhdEVr2YqdSeOY90FILXTIRr2K` at
+https://valiant-ram-10.convex.site/agentmail/webhook (event:
+`message.received`); the returned signing secret was set as
+AGENTMAIL_WEBHOOK_SECRET and functions re-pushed.
+
+**Verified REAL — the previously-simulated push leg is now real:**
+- Drill sends: 2 real AgentMail emails (real SES message ids) — outreach +
+  reply with a real 165KB JPEG attachment.
+- AgentMail delivered the signed svix webhook to the .convex.site route;
+  the component verified the signature; `mail:onMessageReceived` ran on
+  push (no replay) → shelter correlation → sighting → match_scored events
+  on the live feed.
+
+**Bug found + fixed (webhook attachment shape):** receiver-side webhook
+messages carry attachments as `{attachment_id, filename, content_type,
+size}` with NO url (the sender-side thread view does have urls — why the
+old replay worked). Fix: `convex/lib/attachments.ts` resolves
+`attachment_id` via AgentMail Get Attachment
+(GET /inboxes/{i}/messages/{m}/attachments/{a}) → signed `download_url` →
+bytes → Convex file storage; `convex/mail.ts` + `convex/matches.ts` thread
+`inbox_id`/`message_id` through. Verified: newest sighting photo stored
+(`kg28a5wc57m2tzdd3fsp3r2akh8dk3g0`), match `candidatePhotoId` set, reasons
+state the photo awaits real vision.
+
+**Harness:** `devloop:runDrillLoop` gained `skipReplay` — sends real mail
+and lets the registered webhook drive processing (true production path).
+
+**Remaining mock (only):** OpenAI vision + drafting (`convex/lib/vision.ts`
+labeled adapter). Unblocks the moment OPENAI_API_KEY is set.
 
 ### 2026-08-26 - 6d62a07
 Scaffolded the full FetchBack backend and a minimal live board. Schema covers

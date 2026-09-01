@@ -212,6 +212,9 @@ export const runDrillLoop = action({
     caseId: v.id("searchCases"),
     photoUrl: v.optional(v.string()),
     replyText: v.optional(v.string()),
+    // Skip the local replay (step 6-7) and let the REAL registered webhook
+    // (svix push → http.ts → handleEvent) process the reply instead.
+    skipReplay: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     if (process.env.FETCHBACK_ALLOW_DEVLOOP !== "1") {
@@ -286,6 +289,20 @@ export const runDrillLoop = action({
         outreach,
         reply,
         note: "reply send did not complete; inspect AgentMail dashboard",
+      };
+    }
+
+    // Real-webhook mode: stop here. The registered svix webhook at
+    // <site>/agentmail/webhook receives the push and runs the production
+    // path (mail.onMessageReceived → storage → vision → match) for real.
+    if (args.skipReplay) {
+      return {
+        ok: true,
+        caseInbox,
+        shelterSim,
+        outreach: { outboundId: outreachId, ...outreach },
+        reply: { outboundId: replyId, ...reply },
+        note: "sends are real; reply processing delegated to the registered webhook push",
       };
     }
 
