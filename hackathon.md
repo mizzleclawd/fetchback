@@ -2,7 +2,7 @@
 
 - **Project:** FetchBack
 - **Event:** Convex All Gas Hackathon
-- **What it does:** Multiplayer missing-pet search party — register your pet and run practice drills; when a pet is lost, volunteers claim live search territories, Firecrawl monitors shelter pages, an AgentMail inbox contacts shelters and receives replies, and OpenAI vision scores possible matches the owner confirms or rejects.
+- **What it does:** Multiplayer missing-pet search party — register your pet and run practice drills; when a pet is lost, volunteers claim live search territories, Firecrawl monitors shelter pages, an AgentMail inbox contacts shelters and receives replies, and OpenAI vision through Convex AI Gateway scores possible matches the owner confirms or rejects.
 - **Live app:** not deployed (dev deployment live: https://valiant-ram-10.convex.cloud)
 - **Repo:** https://github.com/mizzleclawd/fetchback (branch `main`)
 - **Frontend:** Convex static hosting
@@ -10,11 +10,34 @@
 - **Components:** @agentmail/convex, @firecrawl/firecrawl-convex
 - **Convex features:** schema, tables, indexes, queries, mutations, actions, internal functions, HTTP actions, scheduled functions, file storage, realtime queries
 - **Auth:** @convex-dev/auth — one-tap Anonymous owner identity; owner-only guards with labeled demo passthrough
-- **AI models:** OpenAI (vision match scoring + outreach drafting; model configurable, default gpt-5.2) — **currently behind the mock adapter** (see log)
+- **AI models:** OpenAI through Convex AI Gateway (vision match scoring + outreach drafting; model configurable, default `openai/gpt-5.2`) — real multimodal cloud-dev test passed; labeled mock remains the safe fallback
 - **Started:** 2026-08-26T02:47:00Z
-- **Last updated:** 2026-09-01T04:50:00Z
+- **Last updated:** 2026-09-04T04:12:00Z
 
 ## Log
+
+### 2026-09-03 — Convex AI Gateway multimodal path (Connie)
+
+Replaced the direct `OPENAI_API_KEY` integration with Convex AI Gateway.
+Actions mint a short-lived, deployment-scoped credential with
+`getServiceToken("ai-gateway")`; FetchBack never receives or stores an OpenAI
+key. The default model is provider-qualified `openai/gpt-5.2`, configurable
+with `FETCHBACK_AI_MODEL`.
+
+**Verified REAL on cloud dev `valiant-ram-10`:** two different public golden
+retriever photos were submitted through `gatewayTest:runMultimodal`. Result:
+`provider=convex-ai-gateway`, `model=openai/gpt-5.2`, `usedMock=false`, score
+`0.55` on the final deployed-code run. Reasons cited concrete visual evidence including head/ear shape, dark
+nose, coat color, and coat-length differences. The first reason visibly tags
+the gateway/model and states that this is only a possible match requiring
+owner review.
+
+**Safe fallback:** gateway-disabled, gateway-unavailable, HTTP-error, and
+explicit `FETCHBACK_VISION_MODE=mock` paths keep processing and return
+`[MOCK vision adapter — image was NOT analyzed]`. Outreach similarly falls
+back to a labeled offline template and remains human approval-gated. Five
+deterministic tests pass; typecheck and production frontend build pass.
+Tester instructions: `docs/AI_GATEWAY_TEST.md`.
 
 ### 2026-08-31 (evening) — LLM provider ruling + decision (Connie)
 

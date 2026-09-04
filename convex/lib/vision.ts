@@ -1,26 +1,31 @@
 // Vision/drafting seam — the single dispatch point for the AI provider.
 //
-// Real provider: OpenAI (./openai.ts), used when OPENAI_API_KEY is set.
-// Mock provider: deterministic, clearly-labeled text heuristic used ONLY
-// while OPENAI_API_KEY is unconfigured. Mock output is tagged in every
-// reason string so logs/UI can never present it as real vision scoring.
+// Real provider: OpenAI through Convex AI Gateway (./aiGateway.ts). Convex
+// mints a short-lived deployment credential; no provider key is stored here.
+// Mock provider: deterministic, clearly labeled fallback. It can be forced
+// with FETCHBACK_VISION_MODE=mock and is also used if the gateway is disabled
+// or unavailable, so inbound mail processing never loses the attachment.
 //
 // Product rule (both providers): only ever "possible match" plausibility,
 // never certainty; the OWNER confirms or rejects.
 
 import {
-  scoreMatch as openaiScoreMatch,
-  draftShelterEmail as openaiDraftShelterEmail,
+  aiGatewayProvider,
+  gatewayModel,
   type MatchScore,
-} from "./openai";
+} from "./aiGateway";
 
-export type VisionMode = "openai" | "mock";
+export type VisionMode = "gateway" | "mock";
 
 export function visionMode(): VisionMode {
-  return process.env.OPENAI_API_KEY ? "openai" : "mock";
+  return process.env.FETCHBACK_VISION_MODE?.toLowerCase() === "mock"
+    ? "mock"
+    : "gateway";
 }
 
-export const MOCK_TAG = "[MOCK vision adapter — no OPENAI_API_KEY configured]";
+export const MOCK_TAG = "[MOCK vision adapter — image was NOT analyzed]";
+
+export type VisionProvider = typeof aiGatewayProvider;
 
 // ---- Mock: deterministic text-overlap heuristic (no network, no images) ----
 
@@ -42,7 +47,7 @@ function tokens(s: string): Set<string> {
   );
 }
 
-function mockScoreMatch(args: {
+export function mockScoreMatch(args: {
   petDescription: string;
   petPhotoUrls: string[];
   candidateDescription?: string;
@@ -76,9 +81,23 @@ export async function scoreMatch(args: {
   petPhotoUrls: string[];
   candidateDescription?: string;
   candidatePhotoUrl?: string;
-}): Promise<MatchScore> {
+}, provider: VisionProvider = aiGatewayProvider): Promise<MatchScore> {
   if (visionMode() === "mock") return mockScoreMatch(args);
-  return openaiScoreMatch(args);
+  try {
+    return await provider.scoreMatch(args);
+  } catch (error) {
+    const fallback = mockScoreMatch(args);
+    const message = error instanceof Error ? error.message : "";
+    const cause = message.includes("AiGatewayDisabled")
+      ? "Convex AI Gateway is disabled for this team/deployment."
+      : message.includes("AiGatewayUnavailable")
+        ? "Convex AI Gateway is unavailable on this deployment."
+        : /HTTP \d{3}/.test(message)
+          ? `Convex AI Gateway request failed (${message.match(/HTTP \d{3}/)?.[0]}).`
+          : "Convex AI Gateway request failed.";
+    fallback.reasons.splice(1, 0, cause);
+    return fallback;
+  }
 }
 
 export async function draftShelterEmail(args: {
@@ -87,22 +106,26 @@ export async function draftShelterEmail(args: {
   areaDescription: string;
   isDrill: boolean;
   shelterName: string;
-}): Promise<{ subject: string; body: string }> {
-  if (visionMode() === "mock") {
-    const drillPrefix = args.isDrill ? "[DRILL - no action needed] " : "";
-    return {
-      subject: `${drillPrefix}Possible match inquiry: ${args.petName} (${args.shelterName})`,
-      body:
-        `Hello ${args.shelterName},\n\n` +
-        `We are searching for ${args.petName}: ${args.petDescription}. ` +
-        `Last seen ${args.areaDescription}.\n` +
-        (args.isDrill
-          ? `This is a clearly-labeled PRACTICE DRILL of a lost-pet response system — no pet is actually missing.\n`
-          : "") +
-        `If an animal matching this description has been brought in or reported, could you reply to this email with a photo?\n\n` +
-        `Thank you,\nFetchBack search assistant, on behalf of the owner\n\n` +
-        `[Drafted by the offline template adapter — no OPENAI_API_KEY is configured, so this was not AI-drafted.]`,
-    };
+}, provider: VisionProvider = aiGatewayProvider): Promise<{ subject: string; body: string }> {
+  if (visionMode() !== "mock") {
+    try {
+      return await provider.draftShelterEmail(args);
+    } catch {
+      // Safe fallback below. Draft creation must not block shelter outreach.
+    }
   }
-  return openaiDraftShelterEmail(args);
+  const drillPrefix = args.isDrill ? "[DRILL - no action needed] " : "";
+  return {
+    subject: `${drillPrefix}Possible match inquiry: ${args.petName} (${args.shelterName})`,
+    body:
+      `Hello ${args.shelterName},\n\n` +
+      `We are searching for ${args.petName}: ${args.petDescription}. ` +
+      `Last seen ${args.areaDescription}.\n` +
+      (args.isDrill
+        ? `This is a clearly-labeled PRACTICE DRILL of a lost-pet response system — no pet is actually missing.\n`
+        : "") +
+      `If an animal matching this description has been brought in or reported, could you reply to this email with a photo?\n\n` +
+      `Thank you,\nFetchBack search assistant, on behalf of the owner\n\n` +
+      `[MOCK offline template — Convex AI Gateway (${gatewayModel()}) was not used; this was not AI-drafted.]`,
+  };
 }

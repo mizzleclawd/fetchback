@@ -1,5 +1,5 @@
 // Match pipeline: candidate (from shelter email / web listing / sighting)
-// → OpenAI vision score with visible reasons → owner confirms or rejects.
+// → OpenAI vision via Convex AI Gateway → owner confirms or rejects.
 // Product rule: the model only ever says "possible match"; the OWNER decides.
 
 import { v } from "convex/values";

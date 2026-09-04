@@ -8,6 +8,7 @@
     "dev:backend": "convex dev",
     "build": "tsc -b && vite build",
     "typecheck": "tsc --noEmit -p convex && tsc --noEmit",
+    "test": "vitest run",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -26,7 +27,8 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.7.2",
-    "vite": "^6.0.0"
+    "vite": "^6.0.0",
+    "vitest": "^5.0.0"
   },
   "patchedDependencies": {
     "@agentmail/convex@0.1.0": "patches/@agentmail%2Fconvex@0.1.0.patch"

@@ -137,7 +137,7 @@ export default defineSchema({
     candidatePhotoId: v.optional(v.id("_storage")),
     candidateUrl: v.optional(v.string()),
     candidateDescription: v.optional(v.string()),
-    // OpenAI vision scoring — always "possible match", never certainty
+    // Gateway-backed vision scoring — always "possible match", never certainty
     score: v.number(), // 0..1
     reasons: v.array(v.string()), // visible reasons shown in UI
     verdict: matchVerdict,
