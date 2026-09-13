@@ -228,3 +228,18 @@ AGENTMAIL_INBOX_ID ✗ (set when the case inbox is created for real).
 **Blockers (principal):** new AgentMail API key · OPENAI_API_KEY (vision) ·
 register the AgentMail webhook → https://valiant-ram-10.convex.site/agentmail/webhook
 + set AGENTMAIL_WEBHOOK_SECRET.
+
+### 2026-09-01 — readiness audit vs. submission requirements (Connie)
+
+*(Supersedes the stale blockers above: AgentMail key, webhook, secret, and
+inbox are all set and verified real — see the later 08-31 entries.)*
+
+Verdict: ~60% submission-ready. DONE: Convex depth (incl. auth), Firecrawl
+real, AgentMail real (send + push webhook + attachments), public repo,
+build log current. NOT DONE (critical-path order): notice-board frontend →
+prod deploy (`beloved-dog-203` + convex.site static hosting + prod
+webhook + clean seed) → OPENAI_API_KEY (real vision; $25 credits pending
+since 08-31) → social post after the live URL exists (tag
+@convex @OpenAI @firecrawl @agentmail) → <3min video → vibeapps.dev
+submission. Deadline: Sep 22, 12:00 PM PT (21 days). Frontend build starts
+now.
