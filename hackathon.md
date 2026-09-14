@@ -243,3 +243,19 @@ since 08-31) → social post after the live URL exists (tag
 @convex @OpenAI @firecrawl @agentmail) → <3min video → vibeapps.dev
 submission. Deadline: Sep 22, 12:00 PM PT (21 days). Frontend build starts
 now.
+
+### 2026-09-04 — gateway re-verified by fresh run; audit corrected (Connie)
+
+The 09-01 readiness audit above was stale when written — commit `3d3c7da`
+(sep 3) had already replaced `OPENAI_API_KEY` with the Convex AI Gateway
+and verified it real. **Blockers list corrected: no OpenAI key is needed,
+ever** — the gateway owns provider credentials.
+
+Fresh verification run (this session, `gatewayTest:runMultimodal`,
+verbatim runbook photos): `provider=convex-ai-gateway`,
+`model=openai/gpt-5.2`, `usedMock=false`, score 0.56 — reasons cite true
+visual evidence (coat feathering, ear set, lighter cream-golden candidate,
+"could be grooming/season or a different dog"). An accidental
+malformed-image-URL run also exercised the resilience path: HTTP 400 →
+clean labeled mock fallback, attachment pipeline unaffected. Sponsor-stack
+status: **OpenAI real ✅ · Firecrawl real ✅ · AgentMail real ✅**.

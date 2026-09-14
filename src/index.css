@@ -1,14 +1,260 @@
+/* FetchBack — community notice board design system.
+   Warm cork-and-kraft paper world: pinned cards, polaroid photos,
+   marker labels. No external fonts or image assets — everything is
+   layered CSS so the board loads instantly anywhere. */
+
+:root {
+  --cork: #e3d3b4;
+  --cork-deep: #d4bf98;
+  --kraft: #c9b391;
+  --paper: #fffdf6;
+  --paper-edge: #efe6d2;
+  --ink: #3a2f24;
+  --ink-soft: #7a6a55;
+  --alert: #c0392b;
+  --alert-soft: #fdeeea;
+  --hope: #2e7d32;
+  --hope-soft: #eaf4ea;
+  --sky: #4a7a96;
+  --sky-soft: #e9f2f7;
+  --gold: #b98b1f;
+  --pin: #b3402e;
+  --tape: rgba(233, 214, 160, 0.75);
+  --shadow-card: 0 10px 24px -12px rgba(58, 47, 36, 0.55),
+    0 2px 6px -2px rgba(58, 47, 36, 0.35);
+  --font-hand: "Marker Felt", "Bradley Hand", "Segoe Print", "Comic Sans MS",
+    cursive;
+  --font-round: ui-rounded, "Arial Rounded MT Bold", "Trebuchet MS",
+    "Segoe UI", system-ui, sans-serif;
+  --font-body: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+}
+
 * { box-sizing: border-box; }
-body { margin: 0; font-family: system-ui, sans-serif; background: #0f1115; color: #e8eaed; }
-.wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
-h1 { margin: 0; }
-.tag { color: #9aa0a6; }
-.drill { background: #7c5c00; color: #fff3cd; padding: .5rem 1rem; border-radius: 8px; margin: 1rem 0; font-weight: 600; }
-.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1rem; }
-.feed { max-height: 420px; overflow-y: auto; padding-left: 1rem; }
-.kind { color: #8ab4f8; font-size: .8em; margin-right: .4em; }
-button { margin: .25rem .5rem .25rem 0; padding: .4rem .8rem; border-radius: 6px; border: 1px solid #444; background: #1a73e8; color: white; cursor: pointer; }
-button:disabled { background: #333; cursor: not-allowed; }
-input { padding: .4rem; border-radius: 6px; border: 1px solid #444; background: #1b1e24; color: inherit; margin-right: .5rem; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background-color: var(--cork);
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1.6px),
+    radial-gradient(rgba(122, 106, 85, 0.16) 1px, transparent 1.4px),
+    linear-gradient(160deg, var(--cork) 0%, var(--cork-deep) 55%, var(--kraft) 100%);
+  background-size: 26px 26px, 34px 34px, 100% 100%;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+/* ---- header ---- */
+
+h1 { font-family: var(--font-round); font-size: 2.2rem; margin: 0; letter-spacing: .5px; }
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .6rem 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 3px dashed rgba(122, 106, 85, 0.45);
+  margin-bottom: 1.5rem;
+}
+
+.tag { color: var(--ink-soft); font-size: 1rem; }
+
+.auth { margin-left: auto; display: inline-flex; align-items: center; gap: .4rem; }
+
+/* ---- pinned paper cards ---- */
+
+.card {
+  position: relative;
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  border-radius: 10px;
+  box-shadow: var(--shadow-card);
+  padding: 1rem 1.1rem;
+}
+
+/* pushpin dot in the top center of every card */
+.card::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #e07a5f, var(--pin) 60%, #7d2418);
+  box-shadow: 0 3px 4px -1px rgba(0, 0, 0, 0.45);
+}
+
+/* gentle uneven tilt so the board feels hand-pinned */
+.card:nth-child(3n+1) { transform: rotate(-0.7deg); }
+.card:nth-child(3n+2) { transform: rotate(0.5deg); }
+.card:nth-child(3n)   { transform: rotate(-0.2deg); }
+
+.card h3 {
+  font-family: var(--font-round);
+  margin: .2rem 0 .6rem;
+  font-size: 1.05rem;
+}
+
+/* ---- polaroid photos ---- */
+
+.polaroid {
+  background: #fff;
+  padding: 8px 8px 30px;
+  border: 1px solid #e8e0cf;
+  box-shadow: 0 6px 14px -8px rgba(58, 47, 36, 0.6);
+  transform: rotate(-1.2deg);
+}
+
+.polaroid img { display: block; width: 100%; height: auto; background: var(--paper-edge); }
+
+.polaroid figcaption {
+  font-family: var(--font-hand);
+  color: var(--ink-soft);
+  font-size: .85rem;
+  text-align: center;
+  margin-top: 6px;
+}
+
+/* ---- labels & banners ---- */
+
+.drill {
+  font-family: var(--font-hand);
+  background: repeating-linear-gradient(45deg, #f6d68a, #f6d68a 12px, #f3cd6d 12px, #f3cd6d 24px);
+  color: #6b4d00;
+  padding: .55rem 1rem;
+  border-radius: 6px;
+  margin: 1rem 0;
+  font-weight: 700;
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.stamp {
+  display: inline-block;
+  font-family: var(--font-hand);
+  font-size: .8rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  border: 3px solid currentColor;
+  border-radius: 6px;
+  padding: .1rem .5rem;
+  transform: rotate(-4deg);
+  opacity: .85;
+}
+
+.stamp.missing { color: var(--alert); background: var(--alert-soft); }
+.stamp.found   { color: var(--hope); background: var(--hope-soft); }
+.stamp.drill   { color: var(--gold); background: #fdf4dd; }
+
+/* ---- layout ---- */
+
+.cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 1.6rem 1.4rem;
+  margin-top: 1.2rem;
+  align-items: start;
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.4rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .board-grid { grid-template-columns: 1fr; }
+}
+
+/* ---- feed: lined notepad ---- */
+
+.feed {
+  max-height: 430px;
+  overflow-y: auto;
+  padding-left: 1.2rem;
+  list-style: none;
+  margin: 0;
+}
+
+.feed li {
+  padding: .45rem .2rem .45rem .6rem;
+  border-bottom: 1px dashed rgba(122, 106, 85, 0.4);
+  line-height: 1.5;
+  font-size: .95rem;
+  position: relative;
+}
+
+.feed li::before {
+  content: "•";
+  position: absolute;
+  left: -1rem;
+  color: var(--sky);
+}
+
+.kind {
+  font-family: var(--font-round);
+  color: var(--sky);
+  font-size: .74em;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-right: .45em;
+}
+
+/* ---- controls ---- */
+
+button {
+  font-family: var(--font-round);
+  margin: .25rem .5rem .25rem 0;
+  padding: .45rem .9rem;
+  border-radius: 12px 5px 12px 5px;
+  border: 2px solid rgba(58, 47, 36, 0.25);
+  background: var(--sky);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 3px 0 -1px rgba(58, 47, 36, 0.35);
+  transition: transform .06s ease;
+}
+
+button:hover:not(:disabled) { transform: translateY(-1px); }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { background: var(--paper-edge); color: var(--ink-soft); cursor: not-allowed; }
+
+button.good { background: var(--hope); }
+button.bad  { background: var(--alert); }
+button.ghost { background: var(--paper); color: var(--ink); border-style: dashed; }
+
+input, textarea, select {
+  padding: .45rem .55rem;
+  border-radius: 8px 6px 8px 6px;
+  border: 2px solid rgba(122, 106, 85, 0.35);
+  background: #fffef9;
+  color: inherit;
+  margin-right: .5rem;
+  font-family: inherit;
+}
+
+input:focus, textarea:focus { outline: 3px solid rgba(74, 122, 150, 0.35); }
+
+/* ---- misc ---- */
+
 ul { line-height: 1.6; }
-code { background: #1b1e24; padding: .1em .4em; border-radius: 4px; }
+
+code {
+  background: var(--paper-edge);
+  padding: .12em .45em;
+  border-radius: 5px;
+  font-size: .9em;
+}
+
+.paw-divider { text-align: center; color: var(--ink-soft); opacity: .6; letter-spacing: 1.2rem; margin: 1.6rem 0 .4rem; }
+
+.muted { color: var(--ink-soft); }
+
+.match-score { font-family: var(--font-round); font-weight: 700; }
