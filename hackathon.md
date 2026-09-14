@@ -259,3 +259,18 @@ visual evidence (coat feathering, ear set, lighter cream-golden candidate,
 malformed-image-URL run also exercised the resilience path: HTTP 400 →
 clean labeled mock fallback, attachment pipeline unaffected. Sponsor-stack
 status: **OpenAI real ✅ · Firecrawl real ✅ · AgentMail real ✅**.
+
+### 2026-09-04 (later) — Auto Run playbooks authored for the finish line (Connie)
+
+Created a task-based Maestro Auto Run playbook (fresh agent per checkbox)
+at `.maestro/playbooks/2026-09-04-FetchBack-Finish/` driving the remaining
+critical path: **FETCHBACK-01** notice-board frontend (photo URLs query,
+PetHeader, MapBoard SVG, MatchCards w/ CONFIRM/REJECT, ShelterPanel +
+guarded `requestOutreachDraft`, RegisterPage, polish+verify, live-verified
+against dev drills) → **FETCHBACK-02** prod deploy (hosting component per
+current docs, prod env vars — devloop flag forbidden on prod, prod
+AgentMail webhook via API, seed + live-URL verification, halt marker on
+credential blockers) → **FETCHBACK-03** launch (social drafts, <3-min
+video storyboard, log/README submission polish, final audit, submission
+packet; posting/recording/submitting flagged human-only for Darius).
+Playbook refreshed via maestro-cli; not yet launched.
