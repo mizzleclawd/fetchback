@@ -2,7 +2,7 @@
 
 - **Project:** FetchBack
 - **Event:** Convex All Gas Hackathon
-- **What it does:** Multiplayer missing-pet search party — register your pet and run practice drills; when a pet is lost, volunteers claim live search territories, Firecrawl monitors shelter pages, an AgentMail inbox contacts shelters and receives replies, and OpenAI vision through Convex AI Gateway scores possible matches the owner confirms or rejects.
+- **Pitch (one line):** The multiplayer missing-pet search party — neighbors claim live search-map territories, Firecrawl watches shelter pages, AgentMail emails shelters, and OpenAI vision via Convex AI Gateway scores photo matches that only the owner can confirm.
 - **Live app:** https://beloved-dog-203.convex.site (prod; dev deployment also live: https://valiant-ram-10.convex.cloud)
 - **Repo:** https://github.com/mizzleclawd/fetchback (branch `main`)
 - **Frontend:** Convex static hosting (`@convex-dev/static-hosting` v0.2.1, app-owned root routing)
@@ -12,7 +12,19 @@
 - **Auth:** @convex-dev/auth — one-tap Anonymous owner identity; owner-only guards with labeled demo passthrough
 - **AI models:** OpenAI through Convex AI Gateway (vision match scoring + outreach drafting; model configurable, default `openai/gpt-5.2`) — real multimodal cloud-dev test passed; labeled mock remains the safe fallback
 - **Started:** 2026-08-26T02:47:00Z
-- **Last updated:** 2026-09-13T20:25:00Z
+- **Last updated:** 2026-09-14T00:00:00Z
+
+## How to demo (for judges)
+
+1. Open the live app — the default board is the **`demo-biscuit` practice
+   drill** (fictional pet, labeled as a drill in-app): live map, claimable
+   territories, shelter list, outreach drafts, and match cards with CONFIRM /
+   REJECT are all clickable without an account.
+2. Want the full owner flow? "Register a pet" → one-tap sign-in → start your
+   own drill and share the link.
+3. To verify the real AI path end-to-end, see
+   [`docs/AI_GATEWAY_TEST.md`](docs/AI_GATEWAY_TEST.md) (gateway multimodal
+   runbook + safe-mock fallback labels).
 
 ## Log
 
@@ -115,6 +127,37 @@ query; `mail:requestOutreachDraft` public mutation; `activateCase` return
 extended to `{caseId, slug}` (no callers depended on the old shape).
 Committed and pushed to `main`.
 
+### 2026-09-04 (later) — Auto Run playbooks authored for the finish line (Connie)
+
+Created a task-based Maestro Auto Run playbook (fresh agent per checkbox)
+at `.maestro/playbooks/2026-09-04-FetchBack-Finish/` driving the remaining
+critical path: **FETCHBACK-01** notice-board frontend (photo URLs query,
+PetHeader, MapBoard SVG, MatchCards w/ CONFIRM/REJECT, ShelterPanel +
+guarded `requestOutreachDraft`, RegisterPage, polish+verify, live-verified
+against dev drills) → **FETCHBACK-02** prod deploy (hosting component per
+current docs, prod env vars — devloop flag forbidden on prod, prod
+AgentMail webhook via API, seed + live-URL verification, halt marker on
+credential blockers) → **FETCHBACK-03** launch (social drafts, <3-min
+video storyboard, log/README submission polish, final audit, submission
+packet; posting/recording/submitting flagged human-only for Darius).
+Playbook refreshed via maestro-cli; not yet launched.
+
+### 2026-09-04 — gateway re-verified by fresh run; audit corrected (Connie)
+
+The 09-01 readiness audit above was stale when written — commit `3d3c7da`
+(sep 3) had already replaced `OPENAI_API_KEY` with the Convex AI Gateway
+and verified it real. **Blockers list corrected: no OpenAI key is needed,
+ever** — the gateway owns provider credentials.
+
+Fresh verification run (this session, `gatewayTest:runMultimodal`,
+verbatim runbook photos): `provider=convex-ai-gateway`,
+`model=openai/gpt-5.2`, `usedMock=false`, score 0.56 — reasons cite true
+visual evidence (coat feathering, ear set, lighter cream-golden candidate,
+"could be grooming/season or a different dog"). An accidental
+malformed-image-URL run also exercised the resilience path: HTTP 400 →
+clean labeled mock fallback, attachment pipeline unaffected. Sponsor-stack
+status: **OpenAI real ✅ · Firecrawl real ✅ · AgentMail real ✅**.
+
 ### 2026-09-03 — Convex AI Gateway multimodal path (Connie)
 
 Replaced the direct `OPENAI_API_KEY` integration with Convex AI Gateway.
@@ -138,53 +181,20 @@ back to a labeled offline template and remains human approval-gated. Five
 deterministic tests pass; typecheck and production frontend build pass.
 Tester instructions: `docs/AI_GATEWAY_TEST.md`.
 
-### 2026-08-31 (evening) — LLM provider ruling + decision (Connie)
+### 2026-09-01 — readiness audit vs. submission requirements (Connie)
 
-Verified against the official rules (convex.dev/hackathons/all-gas):
-eligibility requires the Convex backend, at least one cohost/partner
-integration (FetchBack has two: Firecrawl + AgentMail), a public repo, and
-a convex.site/chatgpt.site live URL — a specific runtime LLM is NOT an
-eligibility rule ("Anything goes, as long as Convex is the backend"), and
-the build tool may be any agent/IDE with the Convex plugin. However,
-"Sponsor stack — OpenAI, Firecrawl, and AgentMail do real work" is a
-scored criterion and OpenAI fields four of the judges. Decision: OpenAI
-stays the vision/drafting engine (model seam in `convex/lib/vision.ts`
-remains configurable for fallbacks); awaiting a ~$10 API credit purchase.
-The labeled mock adapter keeps the app fully demoable until then. No code
-changed in this entry.
+*(Supersedes the stale blockers above: AgentMail key, webhook, secret, and
+inbox are all set and verified real — see the later 08-31 entries.)*
 
-### 2026-08-31 (night) — credit sizing for multi-app submissions (Connie)
-
-Context: multiple apps will be submitted (rules explicitly allow unlimited
-submissions). Budget decision: OpenAI credit purchase sized at $25, not
-$10 — kill-gate/demo/judge traffic across 2-3 apps estimates $10-25, and
-an app rate-limiting during judging would zero the "OpenAI does real
-work" criterion. Plan when OPENAI_API_KEY lands: default the vision
-adapter to a low-cost vision model for public/judge traffic via the
-existing model seam in `convex/lib/vision.ts` (mini-class models are
-10-20x cheaper), reserving the strongest model for the recorded demo.
-Credits do not expire; surplus remains account balance.
-
-### 2026-08-31 (late) — while-waiting plan + frontend readiness audit (Connie)
-
-Audited frontend state while awaiting OPENAI_API_KEY: `src/App.tsx` is the
-126-line scaffold board (realtime feed + claim/report work) but surfaces
-none of the product — no map, no shelters panel, no match photos, no
-owner confirm/reject UI (`decideMatch` exists, unbound), no draft→approve
-→send UI (`approveAndSend` exists, unbound), no registration/activation
-flow. Static hosting not yet wired (no hosting component in
-`convex/convex.config.ts`); `dist/` stale since Aug 25.
-
-Work plan (scored-impact order, all OpenAI-independent):
-1. Real frontend (map, shelters, match cards w/ photos + owner decision,
-   outreach approve flow, feed, registration/drill) — in progress next.
-2. Prod deploy: hosting component → `beloved-dog-203`, env vars (devloop
-   flag stays OFF prod), prod webhook, clean demo seed.
-3. Firecrawl watched-page cron (unused `watchedPages` table) — rescan
-   shelter pages on active cases, auto-file new-listing sightings.
-4. Convex Auth v2 alpha — owner identity gating match decisions.
-5. Demo video storyboard + social post draft.
-6. On key arrival: low-cost vision model default, real-vision kill-gate.
+Verdict: ~60% submission-ready. DONE: Convex depth (incl. auth), Firecrawl
+real, AgentMail real (send + push webhook + attachments), public repo,
+build log current. NOT DONE (critical-path order): notice-board frontend →
+prod deploy (`beloved-dog-203` + convex.site static hosting + prod
+webhook + clean seed) → OPENAI_API_KEY (real vision; $25 credits pending
+since 08-31) → social post after the live URL exists (tag
+@convex @OpenAI @firecrawl @agentmail) → <3min video → vibeapps.dev
+submission. Deadline: Sep 22, 12:00 PM PT (21 days). Frontend build starts
+now.
 
 ### 2026-08-31 (night 2) — Convex Auth added: owner identity + guards (Connie)
 
@@ -213,6 +223,54 @@ argv-safe `execFileSync` — no value echoed.
 throws `AuthError: Sign in required` · demo passthrough `decideMatch`
 persists (verdict confirmed + feed event) · typecheck clean, functions
 pushed.
+
+### 2026-08-31 (late) — while-waiting plan + frontend readiness audit (Connie)
+
+Audited frontend state while awaiting OPENAI_API_KEY: `src/App.tsx` is the
+126-line scaffold board (realtime feed + claim/report work) but surfaces
+none of the product — no map, no shelters panel, no match photos, no
+owner confirm/reject UI (`decideMatch` exists, unbound), no draft→approve
+→send UI (`approveAndSend` exists, unbound), no registration/activation
+flow. Static hosting not yet wired (no hosting component in
+`convex/convex.config.ts`); `dist/` stale since Aug 25.
+
+Work plan (scored-impact order, all OpenAI-independent):
+1. Real frontend (map, shelters, match cards w/ photos + owner decision,
+   outreach approve flow, feed, registration/drill) — in progress next.
+2. Prod deploy: hosting component → `beloved-dog-203`, env vars (devloop
+   flag stays OFF prod), prod webhook, clean demo seed.
+3. Firecrawl watched-page cron (unused `watchedPages` table) — rescan
+   shelter pages on active cases, auto-file new-listing sightings.
+4. Convex Auth v2 alpha — owner identity gating match decisions.
+5. Demo video storyboard + social post draft.
+6. On key arrival: low-cost vision model default, real-vision kill-gate.
+
+### 2026-08-31 (night) — credit sizing for multi-app submissions (Connie)
+
+Context: multiple apps will be submitted (rules explicitly allow unlimited
+submissions). Budget decision: OpenAI credit purchase sized at $25, not
+$10 — kill-gate/demo/judge traffic across 2-3 apps estimates $10-25, and
+an app rate-limiting during judging would zero the "OpenAI does real
+work" criterion. Plan when OPENAI_API_KEY lands: default the vision
+adapter to a low-cost vision model for public/judge traffic via the
+existing model seam in `convex/lib/vision.ts` (mini-class models are
+10-20x cheaper), reserving the strongest model for the recorded demo.
+Credits do not expire; surplus remains account balance.
+
+### 2026-08-31 (evening) — LLM provider ruling + decision (Connie)
+
+Verified against the official rules (convex.dev/hackathons/all-gas):
+eligibility requires the Convex backend, at least one cohost/partner
+integration (FetchBack has two: Firecrawl + AgentMail), a public repo, and
+a convex.site/chatgpt.site live URL — a specific runtime LLM is NOT an
+eligibility rule ("Anything goes, as long as Convex is the backend"), and
+the build tool may be any agent/IDE with the Convex plugin. However,
+"Sponsor stack — OpenAI, Firecrawl, and AgentMail do real work" is a
+scored criterion and OpenAI fields four of the judges. Decision: OpenAI
+stays the vision/drafting engine (model seam in `convex/lib/vision.ts`
+remains configurable for fallbacks); awaiting a ~$10 API credit purchase.
+The labeled mock adapter keeps the app fully demoable until then. No code
+changed in this entry.
 
 ### 2026-08-31 (later) — real webhook + attachment kill-gate (Connie)
 
@@ -252,23 +310,6 @@ and lets the registered webhook drive processing (true production path).
 
 **Remaining mock (only):** OpenAI vision + drafting (`convex/lib/vision.ts`
 labeled adapter). Unblocks the moment OPENAI_API_KEY is set.
-
-### 2026-08-26 - 6d62a07
-Scaffolded the full FetchBack backend and a minimal live board. Schema covers
-pets, search cases (drill/active), volunteer territories, sightings, shelters,
-approval-gated outreach drafts, vision-scored matches, watched pages, and an
-event feed (`convex/schema.ts`). Registered both sponsor components in
-`convex/convex.config.ts`: AgentMail (case inbox: outbound send via human
-approval in `convex/mail.ts`, inbound webhook at `/agentmail/webhook` in
-`convex/http.ts` feeding the match pipeline) and Firecrawl (shelter discovery
-via search + JSON-extraction scrape in `convex/crawl.ts`). OpenAI vision
-scoring and outreach drafting live in `convex/lib/openai.ts`; match verdicts
-are owner-decided only (`convex/matches.ts`). Verified on a local anonymous
-Convex deployment: functions push clean, seeded demo drill case
-(`convex/seed.ts`), and a CLI-fired mutation appeared instantly in the open
-browser's live feed — realtime subscription loop proven. Convex features:
-schema, indexes, queries, mutations, actions, HTTP actions, scheduler, file
-storage, realtime queries.
 
 ### 2026-08-31 - bf92794 + 5bf4da6 - kill-gate push (Connie)
 
@@ -328,48 +369,19 @@ AGENTMAIL_INBOX_ID ✗ (set when the case inbox is created for real).
 register the AgentMail webhook → https://valiant-ram-10.convex.site/agentmail/webhook
 + set AGENTMAIL_WEBHOOK_SECRET.
 
-### 2026-09-01 — readiness audit vs. submission requirements (Connie)
-
-*(Supersedes the stale blockers above: AgentMail key, webhook, secret, and
-inbox are all set and verified real — see the later 08-31 entries.)*
-
-Verdict: ~60% submission-ready. DONE: Convex depth (incl. auth), Firecrawl
-real, AgentMail real (send + push webhook + attachments), public repo,
-build log current. NOT DONE (critical-path order): notice-board frontend →
-prod deploy (`beloved-dog-203` + convex.site static hosting + prod
-webhook + clean seed) → OPENAI_API_KEY (real vision; $25 credits pending
-since 08-31) → social post after the live URL exists (tag
-@convex @OpenAI @firecrawl @agentmail) → <3min video → vibeapps.dev
-submission. Deadline: Sep 22, 12:00 PM PT (21 days). Frontend build starts
-now.
-
-### 2026-09-04 — gateway re-verified by fresh run; audit corrected (Connie)
-
-The 09-01 readiness audit above was stale when written — commit `3d3c7da`
-(sep 3) had already replaced `OPENAI_API_KEY` with the Convex AI Gateway
-and verified it real. **Blockers list corrected: no OpenAI key is needed,
-ever** — the gateway owns provider credentials.
-
-Fresh verification run (this session, `gatewayTest:runMultimodal`,
-verbatim runbook photos): `provider=convex-ai-gateway`,
-`model=openai/gpt-5.2`, `usedMock=false`, score 0.56 — reasons cite true
-visual evidence (coat feathering, ear set, lighter cream-golden candidate,
-"could be grooming/season or a different dog"). An accidental
-malformed-image-URL run also exercised the resilience path: HTTP 400 →
-clean labeled mock fallback, attachment pipeline unaffected. Sponsor-stack
-status: **OpenAI real ✅ · Firecrawl real ✅ · AgentMail real ✅**.
-
-### 2026-09-04 (later) — Auto Run playbooks authored for the finish line (Connie)
-
-Created a task-based Maestro Auto Run playbook (fresh agent per checkbox)
-at `.maestro/playbooks/2026-09-04-FetchBack-Finish/` driving the remaining
-critical path: **FETCHBACK-01** notice-board frontend (photo URLs query,
-PetHeader, MapBoard SVG, MatchCards w/ CONFIRM/REJECT, ShelterPanel +
-guarded `requestOutreachDraft`, RegisterPage, polish+verify, live-verified
-against dev drills) → **FETCHBACK-02** prod deploy (hosting component per
-current docs, prod env vars — devloop flag forbidden on prod, prod
-AgentMail webhook via API, seed + live-URL verification, halt marker on
-credential blockers) → **FETCHBACK-03** launch (social drafts, <3-min
-video storyboard, log/README submission polish, final audit, submission
-packet; posting/recording/submitting flagged human-only for Darius).
-Playbook refreshed via maestro-cli; not yet launched.
+### 2026-08-26 - 6d62a07
+Scaffolded the full FetchBack backend and a minimal live board. Schema covers
+pets, search cases (drill/active), volunteer territories, sightings, shelters,
+approval-gated outreach drafts, vision-scored matches, watched pages, and an
+event feed (`convex/schema.ts`). Registered both sponsor components in
+`convex/convex.config.ts`: AgentMail (case inbox: outbound send via human
+approval in `convex/mail.ts`, inbound webhook at `/agentmail/webhook` in
+`convex/http.ts` feeding the match pipeline) and Firecrawl (shelter discovery
+via search + JSON-extraction scrape in `convex/crawl.ts`). OpenAI vision
+scoring and outreach drafting live in `convex/lib/openai.ts`; match verdicts
+are owner-decided only (`convex/matches.ts`). Verified on a local anonymous
+Convex deployment: functions push clean, seeded demo drill case
+(`convex/seed.ts`), and a CLI-fired mutation appeared instantly in the open
+browser's live feed — realtime subscription loop proven. Convex features:
+schema, indexes, queries, mutations, actions, HTTP actions, scheduler, file
+storage, realtime queries.
