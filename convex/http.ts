@@ -1,5 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
+import { components } from "./_generated/api";
+import { registerStaticRoutes } from "@convex-dev/static-hosting";
 import { agentmail } from "./mail";
 import { auth } from "./auth";
 
@@ -23,5 +25,9 @@ http.route({
     ),
   ),
 });
+
+// Static site catch-all (serves the uploaded frontend). Registered last so
+// the exact routes above keep their URLs; SPA fallback to index.html.
+registerStaticRoutes(http, components.staticHosting);
 
 export default http;

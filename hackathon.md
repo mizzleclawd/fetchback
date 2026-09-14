@@ -3,18 +3,60 @@
 - **Project:** FetchBack
 - **Event:** Convex All Gas Hackathon
 - **What it does:** Multiplayer missing-pet search party — register your pet and run practice drills; when a pet is lost, volunteers claim live search territories, Firecrawl monitors shelter pages, an AgentMail inbox contacts shelters and receives replies, and OpenAI vision through Convex AI Gateway scores possible matches the owner confirms or rejects.
-- **Live app:** not deployed (dev deployment live: https://valiant-ram-10.convex.cloud)
+- **Live app:** https://beloved-dog-203.convex.site (prod; dev deployment also live: https://valiant-ram-10.convex.cloud)
 - **Repo:** https://github.com/mizzleclawd/fetchback (branch `main`)
-- **Frontend:** Convex static hosting
-- **Convex deployment:** dev `valiant-ram-10` (team dmd-tech, project fetchback); prod provisioned (`beloved-dog-203`), not yet used
+- **Frontend:** Convex static hosting (`@convex-dev/static-hosting` v0.2.1, app-owned root routing)
+- **Convex deployment:** prod `beloved-dog-203` (team dmd-tech, project fetchback) — backend + hosted frontend + demo seed live; dev `valiant-ram-10` untouched and working
 - **Components:** @agentmail/convex, @firecrawl/firecrawl-convex
 - **Convex features:** schema, tables, indexes, queries, mutations, actions, internal functions, HTTP actions, scheduled functions, file storage, realtime queries
 - **Auth:** @convex-dev/auth — one-tap Anonymous owner identity; owner-only guards with labeled demo passthrough
 - **AI models:** OpenAI through Convex AI Gateway (vision match scoring + outreach drafting; model configurable, default `openai/gpt-5.2`) — real multimodal cloud-dev test passed; labeled mock remains the safe fallback
 - **Started:** 2026-08-26T02:47:00Z
-- **Last updated:** 2026-09-13T20:05:00Z
+- **Last updated:** 2026-09-13T20:25:00Z
 
 ## Log
+
+### 2026-09-13 — Production deploy (Connie)
+
+**Live: https://beloved-dog-203.convex.site** — the full real stack, not a
+preview: Convex backend + components (AgentMail, Firecrawl,
+static-hosting), file storage, auth, realtime queries.
+
+- **Hosting:** added `@convex-dev/static-hosting@0.2.1` per the live docs
+  (convex.dev/components/static-hosting + INTEGRATION.md; package verified
+  against installed exports). **App-owned root routing** — component mounted
+  with no httpPrefix, `registerStaticRoutes` registered in `convex/http.ts`
+  after the exact routes — so `/agentmail/webhook`, `/firecrawl/*`, and the
+  auth routes keep their original URLs (the component's default `/api` mode
+  would have moved them). Deployed via
+  `static-hosting upload --build --prod` (build runs with
+  `VITE_CONVEX_URL=https://beloved-dog-203.convex.cloud`; bundle verified to
+  reference the prod deployment).
+- **Backend:** `CONVEX_DEPLOYMENT=beloved-dog-203 convex deploy` — all
+  indexes + components installed on prod.
+- **Prod env (verified by name via `env list --prod --names-only`):**
+  FIRECRAWL_API_KEY, AGENTMAIL_API_KEY, AGENTMAIL_WEBHOOK_SECRET,
+  AGENTMAIL_INBOX_ID (fetchback-case@agentmail.to), JWT_PRIVATE_KEY, JWKS,
+  SITE_URL (https://beloved-dog-203.convex.site). `FETCHBACK_ALLOW_DEVLOOP`
+  confirmed absent — the dev harness stays dev-only.
+- **Prod AgentMail webhook:** `ep_3JIVMmonOsx7IwEqQFXu31zS59s` at
+  https://beloved-dog-203.convex.site/agentmail/webhook (message.received,
+  enabled; dev webhook `ep_3IhdEVr2YqdSeOY90FILXTIRr2K` still registered).
+  Unsigned POST → 401, so svix verification is live and the exact route wins
+  over the static catch-all. Vision production-readiness: AI Gateway needs
+  no key (deployment-scoped credential), env verified, mock/devloop flags
+  absent.
+- **JWT key rotation:** during env copy, a diagnostic leaked the dev
+  JWT_PRIVATE_KEY into a session log → both keys discarded; fresh RS256 pair
+  (kid `fetchback-20260913`) + JWKS set on dev AND prod via the CLI's stdin
+  form (also works around convex CLI rejecting `-----BEGIN` values as
+  unknown options). Dev + prod `/.well-known/jwks.json` both serve the new
+  kid; existing sessions were invalidated (anonymous, one-tap re-sign-in).
+- **Demo seed verified on prod:** `seed:demoWorkspace` → case
+  `kd769sj7vv2fd3mketg1wryjn98ecz7e`; `cases:caseBySlug demo-biscuit`
+  returns the full drill case + pet; `curl /` → 200. `bun run typecheck` +
+  5/5 tests still pass. Remaining for launch: social post, <3-min video,
+  vibeapps.dev submission (FETCHBACK-03).
 
 ### 2026-09-13 — Notice-board frontend complete (Connie)
 

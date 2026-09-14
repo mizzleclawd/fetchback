@@ -2,6 +2,7 @@ import { defineApp } from "convex/server";
 import { v } from "convex/values";
 import agentmail from "@agentmail/convex/convex.config";
 import firecrawl from "@firecrawl/firecrawl-convex/convex.config";
+import staticHosting from "@convex-dev/static-hosting/convex.config";
 
 const app = defineApp({
   env: {
@@ -36,5 +37,12 @@ app.use(firecrawl, {
     FIRECRAWL_WEBHOOK_SECRET: app.env.FIRECRAWL_WEBHOOK_SECRET,
   },
 });
+
+// Static hosting — serves the built frontend from Convex storage at
+// https://<deployment>.convex.site. App-owned root routing: no httpPrefix,
+// so the app keeps the root URL space (auth routes, /agentmail/webhook,
+// /firecrawl/*) and convex/http.ts registers the static catch-all after the
+// exact routes. Exact routes win over the catch-all.
+app.use(staticHosting);
 
 export default app;
