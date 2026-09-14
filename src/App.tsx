@@ -1,153 +1,117 @@
-import { useQuery, useMutation } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useEffect, useState } from "react";
+import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
-import { useState } from "react";
+import type { Doc } from "../convex/_generated/dataModel";
+import { AuthWidget } from "./components/AuthWidget";
+import { PetHeader } from "./components/PetHeader";
+import { MapBoard } from "./components/MapBoard";
+import { MatchCards } from "./components/MatchCards";
+import { ShelterPanel } from "./components/ShelterPanel";
+import { RegisterPage } from "./components/RegisterPage";
 
-// Minimal live board — proves end-to-end reactivity for the kill-gate.
-// The real map UI replaces this during feature build (post-gate).
+const DEFAULT_SLUG = "demo-biscuit";
 
-const DEMO_SLUG = "demo-biscuit";
+type Route = { view: "case"; slug: string } | { view: "register" };
 
-function AuthWidget() {
-  const viewer = useQuery(api.users.viewer);
-  const { signIn, signOut } = useAuthActions();
-  const [name, setName] = useState("");
-  if (viewer === undefined) return null;
-  if (viewer)
-    return (
-      <button className="auth" onClick={() => void signOut()}>
-        Sign out{viewer.name ? ` (${viewer.name})` : ""}
-      </button>
-    );
-  return (
-    <span className="auth">
-      <input
-        placeholder="Your name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <button onClick={() => void signIn("anonymous", { name })}>
-        Sign in
-      </button>
-    </span>
-  );
+function parseHash(): Route {
+  const h = window.location.hash.replace(/^#/, "");
+  if (h === "/register") return { view: "register" };
+  const m = h.match(/^\/c\/([a-z0-9-]+)/i);
+  if (m) return { view: "case", slug: m[1] };
+  return { view: "case", slug: DEFAULT_SLUG };
+}
+
+function useHashRoute(): Route {
+  const [route, setRoute] = useState<Route>(parseHash);
+  useEffect(() => {
+    const onHash = () => setRoute(parseHash());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  return route;
 }
 
 export default function App() {
-  const data = useQuery(api.cases.caseBySlug, { slug: DEMO_SLUG });
+  const route = useHashRoute();
   return (
     <main className="wrap">
       <header>
         <h1>🐕 FetchBack</h1>
         <p className="tag">
-          Multiplayer missing-pet search party — Convex runs it, Firecrawl feeds
-          it, AgentMail gives it an inbox.
+          Multiplayer missing-pet search party — Convex runs it, Firecrawl
+          feeds it, AgentMail gives it an inbox.
         </p>
+        <nav className="nav">
+          <a href="#/">Board</a>
+          <a href="#/register">Register a pet</a>
+        </nav>
         <AuthWidget />
       </header>
-      {data === undefined && <p>Connecting to Convex…</p>}
-      {data === null && (
-        <p>
-          No demo case yet. Run{" "}
-          <code>bunx convex run seed:demoWorkspace</code> to create it.
-        </p>
+      {route.view === "register" ? (
+        <RegisterPage />
+      ) : (
+        <CasePage slug={route.slug} />
       )}
-      {data && <CaseBoard caseId={data.case._id} petName={data.pet?.name} isDrill={data.case.isDrill} />}
     </main>
   );
 }
 
-function CaseBoard({
-  caseId,
-  petName,
-  isDrill,
+function CasePage({ slug }: { slug: string }) {
+  const data = useQuery(api.cases.caseBySlug, { slug });
+  if (data === undefined) return <p>Connecting to Convex…</p>;
+  if (data === null)
+    return (
+      <p>
+        No case found for <code>{slug}</code>.{" "}
+        {slug === DEFAULT_SLUG && (
+          <>
+            Run <code>bunx convex run seed:demoWorkspace</code> to create the
+            demo case.
+          </>
+        )}
+      </p>
+    );
+  return <Board caseDoc={data.case} pet={data.pet} />;
+}
+
+function Board({
+  caseDoc,
+  pet,
 }: {
-  caseId: string;
-  petName?: string;
-  isDrill: boolean;
+  caseDoc: Doc<"searchCases">;
+  pet: Doc<"pets"> | null;
 }) {
-  const board = useQuery(api.cases.board, { caseId: caseId as never });
-  const claim = useMutation(api.cases.claimTerritory);
-  const sight = useMutation(api.cases.reportSighting);
-  const [name, setName] = useState("");
-
-  if (!board) return <p>Loading board…</p>;
+  const board = useQuery(api.cases.board, { caseId: caseDoc._id });
   return (
-    <section>
-      {isDrill && <div className="drill">PRACTICE DRILL — no pet is actually missing</div>}
-      <h2>Search party for {petName ?? "…"}</h2>
-
-      <div className="cols">
-        <div>
-          <h3>Territories ({board.territories.length})</h3>
-          <ul>
-            {board.territories.map((t) => (
-              <li key={t._id}>
-                {t.volunteerName} — <b>{t.status}</b>
-              </li>
-            ))}
-          </ul>
-          <input
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <button
-            disabled={!name}
-            onClick={() =>
-              claim({
-                caseId: caseId as never,
-                volunteerName: name,
-                north: 36.17,
-                south: 36.16,
-                east: -86.77,
-                west: -86.79,
-              })
-            }
-          >
-            Claim a territory
-          </button>
-          <button
-            disabled={!name}
-            onClick={() =>
-              sight({
-                caseId: caseId as never,
-                reporterName: name,
-                description: "Possible sighting near the park entrance",
-              })
-            }
-          >
-            Report sighting
-          </button>
-        </div>
-
-        <div>
+    <>
+      <PetHeader caseDoc={caseDoc} pet={pet} />
+      <div className="board-grid">
+        <MapBoard
+          caseId={caseDoc._id}
+          caseDoc={caseDoc}
+          pet={pet}
+          board={board}
+        />
+        <section className="card">
           <h3>Live feed</h3>
           <ul className="feed">
-            {board.events.map((e) => (
+            {(board?.events ?? []).map((e) => (
               <li key={e._id}>
                 <span className="kind">{e.kind}</span> {e.message}
               </li>
             ))}
           </ul>
-        </div>
-
-        <div>
-          <h3>Possible matches ({board.matches.length})</h3>
-          <ul>
-            {board.matches.map((m) => (
-              <li key={m._id}>
-                {(m.score * 100).toFixed(0)}% — {m.verdict}
-                <ul>
-                  {m.reasons.map((r, i) => (
-                    <li key={i}>{r}</li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        </div>
+        </section>
       </div>
-    </section>
+      <div className="paw-divider">🐾</div>
+      <div className="cols">
+        <MatchCards caseDoc={caseDoc} matches={board?.matches} />
+        <ShelterPanel
+          caseId={caseDoc._id}
+          shelters={board?.shelters}
+          drafts={board?.drafts}
+        />
+      </div>
+    </>
   );
 }

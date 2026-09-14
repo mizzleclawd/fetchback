@@ -72,6 +72,7 @@ export const activateCase = mutation({
     if (ownerId !== pet.ownerId) {
       throw new Error("Only the pet's owner can activate a case");
     }
+    const slug = makeSlug(pet.name);
     const caseId = await ctx.db.insert("searchCases", {
       petId: args.petId,
       ownerId: pet.ownerId,
@@ -82,7 +83,7 @@ export const activateCase = mutation({
       lastSeenLng: args.lastSeenLng ?? pet.homeLng,
       lastSeenAt: Date.now(),
       notes: args.notes,
-      slug: makeSlug(pet.name),
+      slug,
     });
     await logEvent(
       ctx,
@@ -92,7 +93,7 @@ export const activateCase = mutation({
         ? `Practice drill started for ${pet.name}`
         : `Search activated for ${pet.name}`,
     );
-    return caseId;
+    return { caseId, slug };
   },
 });
 
@@ -273,5 +274,15 @@ export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
     return await ctx.storage.generateUploadUrl();
+  },
+});
+
+/** Resolve storage ids to signed URLs in parallel; missing files yield null. */
+export const photoUrls = query({
+  args: { storageIds: v.array(v.id("_storage")) },
+  handler: async (ctx, args) => {
+    return await Promise.all(
+      args.storageIds.map((id) => ctx.storage.getUrl(id)),
+    );
   },
 });

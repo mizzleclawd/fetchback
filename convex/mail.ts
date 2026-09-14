@@ -28,6 +28,15 @@ function inboxId(): string {
 
 // ---- Outbound: draft → approve → send ----
 
+/** Public entry: request an AI outreach draft for one shelter (owner/demo gated). */
+export const requestOutreachDraft = mutation({
+  args: { caseId: v.id("searchCases"), shelterId: v.id("shelters") },
+  handler: async (ctx, args) => {
+    await requireCaseOwnerOrDemo(ctx, args.caseId);
+    await ctx.scheduler.runAfter(0, internal.mail.draftOutreach, args);
+  },
+});
+
 /** Generate an outreach draft for one shelter (OpenAI drafts, human approves). */
 export const draftOutreach = internalAction({
   args: { caseId: v.id("searchCases"), shelterId: v.id("shelters") },

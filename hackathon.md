@@ -12,9 +12,66 @@
 - **Auth:** @convex-dev/auth — one-tap Anonymous owner identity; owner-only guards with labeled demo passthrough
 - **AI models:** OpenAI through Convex AI Gateway (vision match scoring + outreach drafting; model configurable, default `openai/gpt-5.2`) — real multimodal cloud-dev test passed; labeled mock remains the safe fallback
 - **Started:** 2026-08-26T02:47:00Z
-- **Last updated:** 2026-09-04T04:12:00Z
+- **Last updated:** 2026-09-13T20:05:00Z
 
 ## Log
+
+### 2026-09-13 — Notice-board frontend complete (Connie)
+
+Full user-facing notice board built on the verified backend, all in the
+cork-board design system. Components (all live-verified on dev
+`valiant-ram-10`, browser against `bun run dev`):
+
+- **`PetHeader.tsx`** — hero card: name + MISSING/FOUND/DRILL/CLOSED stamp,
+  breed/color, description, home radius, last-seen time, polaroid photo via
+  the new public `cases:photoUrls` query, and the striped PRACTICE DRILL
+  banner on drill cases. Verified rendering for `demo-biscuit`.
+- **`MapBoard.tsx`** — hand-drawn SVG neighborhood map (no map library):
+  linear lat/lng projection framed by pet home + `homeRadiusM` (padded),
+  dashed territory rectangles colored by status (claimed/searching/done)
+  with volunteer names, 🐾 sighting pins with photo dots, ⌂ home marker,
+  ✕ last-seen marker, park/greenway decoration, wavy streets. Volunteer
+  controls (claim territory / report sighting with jitter near last-seen).
+  **Live-verified:** ran the CLI `claimTerritory` claim while the browser
+  was open — the "MapTest · claimed" rectangle and feed event appeared
+  without refresh.
+- **`MatchCards.tsx`** — one card per match: candidate polaroid
+  (`cases:photoUrls`), `.match-score` percentage, all gateway reasons,
+  source badge, CONFIRM/REJECT (`matches:decideMatch`) while pending;
+  CONFIRMED/REJECTED stamps when decided; demo-case label.
+  **Live-verified end-to-end:** `devloop:runDrillLoop` with a real photo
+  attachment + `skipReplay` (real AgentMail sends, real webhook push) →
+  new 62% match card appeared live with real gateway reasons
+  (`openai/gpt-5.2`, coat/build/collar evidence) → CONFIRM clicked in the
+  UI → stamp + "Owner CONFIRMED the match! 🎉" feed event.
+- **`ShelterPanel.tsx`** — shelter list (link, crawl/seed/manual badge,
+  contact state), "Draft outreach" per un-contacted shelter with email,
+  drafts with subject/body preview + APPROVE & SEND (`mail:approveAndSend`)
+  + "sent ✓". Backing it, `mail:requestOutreachDraft` public mutation
+  (owner/demo-guarded, schedules the internal AI draft).
+  **Live-verified:** Draft outreach → real gateway draft appeared
+  (drill-labeled) → approved → `email_sent` event landed in the live feed.
+- **`RegisterPage.tsx`** + hash routing (`#/register`, `#/c/<slug>`,
+  default board) with `AuthWidget` extracted for reuse. Sign-in prompt when
+  signed out; pet form (name/species/breed/color/description/radius/home
+  lat-lng) with real photo upload (`generateUploadUrl` → POST → storage
+  ids); register → "Start practice drill" (`activateCase` isDrill) → share
+  link. `activateCase` now returns `{caseId, slug}` so the share link is
+  shown. **Live-verified:** signed in anonymously in the browser,
+  registered fictional pet "Waffles" with a photo, started the drill,
+  opened `#/c/waffles-6gnxbu` (full board renders, polaroid shows), and a
+  read-only deployment query confirmed the pet row (real auth subject,
+  photo stored) and the drill case row.
+- **Polish** — `.board-grid` (map + feed) replaces the scaffold `.cols` for
+  the top row, feed kept as the notepad `.feed` with `.kind` badges,
+  `.paw-divider` 🐾 between sections, mobile single-column verified at
+  390px (computed grid columns + no horizontal overflow).
+  `bun run typecheck && bun run build && bun test` → 5/5 pass.
+
+Backend touches (both spec'd by the playbook): `cases:photoUrls` public
+query; `mail:requestOutreachDraft` public mutation; `activateCase` return
+extended to `{caseId, slug}` (no callers depended on the old shape).
+Committed and pushed to `main`.
 
 ### 2026-09-03 — Convex AI Gateway multimodal path (Connie)
 

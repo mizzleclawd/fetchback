@@ -258,3 +258,170 @@ code {
 .muted { color: var(--ink-soft); }
 
 .match-score { font-family: var(--font-round); font-weight: 700; }
+
+/* ---- pet header (hero card) ---- */
+
+.pet-header { margin-bottom: 1.6rem; padding-top: 1.4rem; }
+
+.pet-header-row {
+  display: flex;
+  gap: 1.4rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.pet-facts { flex: 1 1 320px; min-width: 260px; }
+
+.pet-facts h2 {
+  font-family: var(--font-round);
+  margin: .2rem 0 .4rem;
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  flex-wrap: wrap;
+}
+
+.pet-header .polaroid { flex: 0 1 220px; transform: rotate(1.4deg); }
+
+/* ---- hand-drawn SVG map ---- */
+
+.map-svg { width: 100%; height: auto; display: block; }
+
+.map-paper { fill: #fbf6e9; stroke: var(--paper-edge); }
+
+.park { fill: var(--hope-soft); opacity: .8; }
+.park-label {
+  font-family: var(--font-hand);
+  font-size: 15px;
+  fill: var(--hope);
+  opacity: .7;
+  text-anchor: middle;
+}
+
+.street {
+  stroke: rgba(122, 106, 85, .25);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.terr rect { fill: rgba(255, 255, 255, .12); stroke-width: 3; stroke-dasharray: 10 7; }
+.terr.claimed rect { stroke: var(--sky); }
+.terr.searching rect { stroke: var(--gold); }
+.terr.done rect { stroke: var(--hope); }
+.terr text {
+  font-family: var(--font-hand);
+  font-size: 17px;
+  paint-order: stroke;
+  stroke: #fbf6e9;
+  stroke-width: 4px;
+}
+.terr.claimed text { fill: var(--sky); }
+.terr.searching text { fill: var(--gold); }
+.terr.done text { fill: var(--hope); }
+
+.paw-pin text { font-size: 26px; text-anchor: middle; dominant-baseline: middle; }
+.photo-dot { fill: var(--pin); stroke: #fff; stroke-width: 1.5; }
+
+.last-seen text {
+  font-size: 26px;
+  fill: var(--alert);
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.last-seen text + text {
+  font-size: 13px;
+  font-family: var(--font-hand);
+  text-anchor: start;
+  dominant-baseline: middle;
+  paint-order: stroke;
+  stroke: #fbf6e9;
+  stroke-width: 3px;
+}
+
+.home-marker text {
+  font-size: 30px;
+  fill: var(--ink);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.home-marker text + text {
+  font-size: 13px;
+  font-family: var(--font-hand);
+  fill: var(--ink-soft);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.map-controls { margin-top: .8rem; }
+
+/* ---- match cards ---- */
+
+.match-card { border-top: 1px dashed rgba(122, 106, 85, .4); padding: .9rem 0 .4rem; }
+
+.match-head { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+
+.match-body { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+
+.match-body .polaroid { flex: 0 1 170px; }
+
+.match-reasons { flex: 1 1 240px; min-width: 220px; }
+
+.match-reasons ul { margin: .2rem 0 .6rem; padding-left: 1.2rem; }
+
+.demo-note { margin-top: -.2rem; }
+
+/* ---- shelters & outreach ---- */
+
+.shelter-list { list-style: none; padding: 0; margin: 0; }
+
+.shelter-list li {
+  padding: .5rem .1rem;
+  border-bottom: 1px dashed rgba(122, 106, 85, .35);
+}
+
+.shelter-line { margin-bottom: .2rem; }
+
+.draft { border-top: 1px dashed rgba(122, 106, 85, .4); padding: .8rem 0 .4rem; }
+
+.draft-body {
+  white-space: pre-wrap;
+  font-family: var(--font-body);
+  font-size: .9rem;
+  background: var(--paper-edge);
+  border-radius: 8px;
+  padding: .6rem .8rem;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+/* ---- register form ---- */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: .8rem 1rem;
+  margin: .8rem 0;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  font-family: var(--font-round);
+  font-size: .9rem;
+  color: var(--ink-soft);
+}
+
+.form-grid .full { grid-column: 1 / -1; }
+
+.form-grid textarea { resize: vertical; }
+
+/* ---- nav ---- */
+
+.nav { display: inline-flex; gap: .9rem; margin-left: .4rem; }
+
+.nav a { color: var(--sky); font-family: var(--font-round); }
+
+.button-link { color: var(--sky); font-family: var(--font-round); font-weight: 700; }
