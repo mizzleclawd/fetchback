@@ -12,7 +12,7 @@
 - **Auth:** @convex-dev/auth — one-tap Anonymous owner identity; owner-only guards with labeled demo passthrough
 - **AI models:** OpenAI through Convex AI Gateway (vision match scoring + outreach drafting; model configurable, default `openai/gpt-5.2`) — real multimodal cloud-dev test passed; labeled mock remains the safe fallback
 - **Started:** 2026-08-26T02:47:00Z
-- **Last updated:** 2026-09-14T00:00:00Z
+- **Last updated:** 2026-09-14T00:30:00Z
 
 ## How to demo (for judges)
 
@@ -27,6 +27,31 @@
    runbook + safe-mock fallback labels).
 
 ## Log
+
+### 2026-09-14 — Submission-ready audit (Connie)
+
+Full pre-submission check, all green:
+
+- **Automated:** `bun run typecheck` ✓ · `bun run build` ✓ (112 modules,
+  dist/index-CHRjzReI.js) · `bun test` → **5/5 pass**, 10 expect() calls.
+- **Repo:** `git status --short` clean · `git log origin/main..HEAD` empty
+  (everything pushed to `main` at github.com/mizzleclawd/fetchback) ·
+  README + this log polished to submission shape (newest-first order,
+  judge-facing header + "How to demo").
+- **Live:** `https://beloved-dog-203.convex.site/` → **200** · prod query
+  `cases:caseBySlug demo-biscuit` returns the full drill case
+  (`kd769sj7vv2fd3mketg1wryjn98ecz7e`, isDrill ✓) — the default judge board
+  loads.
+- **Readiness items from the 09-01 audit, all closed:** Convex depth incl.
+  auth ✓ · Firecrawl real ✓ · AgentMail real (send + webhook + attachments)
+  ✓ · OpenAI real via AI Gateway (no key ever needed) ✓ · public repo ✓ ·
+  live convex.site URL ✓ · build log current ✓ · social draft
+  (`docs/social-launch.md`) ✓ · demo-video script (`docs/demo-video.md`) ✓ ·
+  submission packet (`docs/SUBMISSION.md`) ✓.
+- **Remaining are human-only (Darius):** record the <3-min walkthrough from
+  `docs/demo-video.md`, post the launch thread/post from
+  `docs/social-launch.md`, and submit at vibeapps.dev before **Sep 22,
+  12:00 PM PT**.
 
 ### 2026-09-13 — Production deploy (Connie)
 
