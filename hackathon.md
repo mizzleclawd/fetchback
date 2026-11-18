@@ -410,3 +410,27 @@ Convex deployment: functions push clean, seeded demo drill case
 browser's live feed — realtime subscription loop proven. Convex features:
 schema, indexes, queries, mutations, actions, HTTP actions, scheduler, file
 storage, realtime queries.
+
+### 2026-11-17 - Thanksgiving release re-verification (Connie)
+
+Full dev flow re-verified on `valiant-ram-10`; no release blockers found;
+no application code changed (docs only).
+
+- Automated: typecheck ✓ build ✓ tests 5/5 ✓ `convex dev --once` ✓
+- Gateway (live): provider `convex-ai-gateway`, `openai/gpt-5.2`,
+  `usedMock: false`, score 0.62 with image-specific reasoning. NOTE: a
+  mistyped/dead image URL degrades safely to the labeled mock with an
+  HTTP-4xx reason — documented in the runbook.
+- Firecrawl (live): discovery returned 5 real Nashville orgs.
+- AgentMail (live, via devloop drill): outreach + reply both `sent` (real
+  SES message id), received message read back from the case inbox with
+  real attachment metadata, replayed through the component webhook
+  dispatch. Pipeline produced match `j973kg0p4emc57vsshh5k0tkex8jfr0q`:
+  photo stored (`kg244yc1p47j2fkq3fstvvrd4h8jfheq`), REAL gateway score
+  0.72 (chest-patch consistency, ~30kg build, collar-conflict noted),
+  verdict pending → owner review path exercised.
+- Env on dev AND prod: AGENTMAIL_API_KEY / AGENTMAIL_INBOX_ID /
+  AGENTMAIL_WEBHOOK_SECRET / FIRECRAWL_API_KEY all present. No credential
+  actions outstanding.
+- Runbook (`docs/AI_GATEWAY_TEST.md`): appended re-verification results and
+  a verbatim-URL warning (load-bearing image URLs; mock-fallback semantics).

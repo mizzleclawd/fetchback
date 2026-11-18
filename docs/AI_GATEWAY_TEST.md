@@ -77,3 +77,26 @@ bunx convex env remove FETCHBACK_VISION_MODE
 
 Never return, log, or persist the service token minted by
 `getServiceToken("ai-gateway")`.
+
+## Thanksgiving release re-verification (2026-11-17, dev `valiant-ram-10`)
+
+All checks green on `main`:
+
+- `bun run typecheck` / `bun run build` / `bun test` (5/5) clean; `bunx convex dev --once` pushes.
+- Live multimodal gateway check: `provider: "convex-ai-gateway"`, `usedMock: false`,
+  model `openai/gpt-5.2`, score 0.62 with image-specific reasoning.
+- Firecrawl discovery live (5 real Nashville orgs).
+- Real AgentMail inbound present on dev: reply with attachment ("Sent via
+  AgentMail" footer) → file storage → gateway-scored match (0.62) → owner
+  confirmed. Webhook, inbox id, and signing secret are configured on both
+  dev and prod.
+
+### ⚠ Copy the image URLs verbatim
+
+The two rawpixel URLs in the command above are load-bearing. A mistyped or
+dead image URL does **not** fail the check — the gateway returns HTTP 400
+and the seam safely falls back to the mock provider with
+`usedMock: true` and a "Gateway request failed (HTTP 400)" reason. If you
+see the mock fallback with an HTTP-4xx reason, re-copy the exact URLs from
+this file (or substitute any two publicly readable JPEG/PNG URLs) before
+concluding anything about the gateway itself.
